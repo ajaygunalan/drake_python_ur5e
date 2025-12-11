@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Drake robotics manipulation examples with UR5e. See README.md for installation.
 
-## Overview
+## Drake Documentation
 
-Drake robotics manipulation examples. See @README.md for installation.
+Use **Ref MCP** for Drake/pydrake API lookups (e.g., `pydrake.visualization.ModelVisualizer`).
 
 ## Ref MCP vs Perplexity MCP: When to Use Which
 
