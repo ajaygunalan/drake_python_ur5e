@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+  ATI NetFT Sensor + Vera P42V Probe Holder for Drake
+  Dimensions from: ur_admittance_controller/urdf/ur_ft_sensor.xacro
+-->
+<robot name="netft_probe">
+  <!-- Properties (from xacro) -->
+  <!-- sensor_dip: 0.003m, sensor_length: 0.04906m -->
+  <!-- p42v_collision_height: 0.233668m (wrist_height - p42v_adapter_intrusion + p42v_cable_end + p42v_trans_len) -->
+
+  <!-- NetFT Base (attaches to UR5e flange) -->
+  <link name="netft_link">
+    <visual>
+      <origin xyz="0 0 0.003" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5e_description/meshes/end_effector/ati_netft_gamma.obj"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.5 0.5 0.5 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.02753" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.04906" radius="0.065"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0 0.02753" rpy="0 0 0"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- P42V Probe Holder -->
+  <joint name="p42v_joint" type="fixed">
+    <origin xyz="0 0 0.05206" rpy="0 0 0"/>
+    <parent link="netft_link"/>
+    <child link="p42v_link"/>
+  </joint>
+  <link name="p42v_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5e_description/meshes/end_effector/vera_p42v_adapter.obj"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0.0 1.0 0.3 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.116834" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.065 0.065 0.233668"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0.116834" rpy="0 0 0"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- TCP Frame (Tool Center Point) -->
+  <joint name="tcp_joint" type="fixed">
+    <origin xyz="0 0 0.233668" rpy="0 0 0"/>
+    <parent link="p42v_link"/>
+    <child link="tcp"/>
+  </joint>
+  <link name="tcp"/>
+
+</robot>
