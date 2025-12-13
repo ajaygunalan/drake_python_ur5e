@@ -22,7 +22,7 @@
     <collision>
       <origin xyz="0 0 0.02753" rpy="0 0 0"/>
       <geometry>
-        <cylinder length="0.04906" radius="0.065"/>
+        <cylinder length="0.04906" radius="0.045"/>
       </geometry>
     </collision>
     <inertial>
@@ -49,9 +49,9 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0.116834" rpy="0 0 0"/>
+      <origin xyz="0 0 0.0925" rpy="0 0 0"/>
       <geometry>
-        <box size="0.065 0.065 0.233668"/>
+        <box size="0.063 0.063 0.185"/>
       </geometry>
     </collision>
     <inertial>
@@ -63,7 +63,7 @@
 
   <!-- TCP Frame (Tool Center Point) -->
   <joint name="tcp_joint" type="fixed">
-    <origin xyz="0 0 0.233668" rpy="0 0 0"/>
+    <origin xyz="0 0 0.185" rpy="0 0 0"/>
     <parent link="p42v_link"/>
     <child link="tcp"/>
   </joint>

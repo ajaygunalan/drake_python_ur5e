@@ -17,12 +17,13 @@ from pathlib import Path
 
 from pydrake.all import (
     AddMultibodyPlantSceneGraph,
+    ApplyVisualizationConfig,
     Demultiplexer,
     DiagramBuilder,
     InverseDynamicsController,
     LeafSystem,
-    MeshcatVisualizer,
     Parser,
+    VisualizationConfig,
 )
 
 from manipulation import ConfigureParser
@@ -65,18 +66,21 @@ class VelocityToDesiredStateAdapter(LeafSystem):
         output.SetFromVector(desired_state)
 
 
-class PositionToDesiredStateAdapter(LeafSystem):
+class PositionVelocityToDesiredStateAdapter(LeafSystem):
     """
-    Adapts position commands (6) to desired_state (12) for InverseDynamicsController.
+    Combines position command and velocity feedforward into desired_state for
+    InverseDynamicsController.
 
-    For position control, we pass the position command for q_d and zeros for v_d.
+    Takes both position (q_d) and velocity (v_d) as external inputs to avoid
+    the damping term fighting against robot motion during trajectory tracking.
     """
     def __init__(self, num_joints=6):
         super().__init__()
         self._n = num_joints
 
-        # Input: position command (6)
+        # Inputs: position command (6) and velocity feedforward (6)
         self.DeclareVectorInputPort("position_command", num_joints)
+        self.DeclareVectorInputPort("velocity_feedforward", num_joints)
 
         # Output: desired_state [q_d, v_d] (12)
         self.DeclareVectorOutputPort(
@@ -84,9 +88,9 @@ class PositionToDesiredStateAdapter(LeafSystem):
         )
 
     def CalcDesiredState(self, context, output):
-        q_cmd = self.get_input_port().Eval(context)
-        # q_d is the commanded position, v_d is zeros
-        desired_state = np.concatenate([q_cmd, np.zeros(self._n)])
+        q_cmd = self.get_input_port(0).Eval(context)
+        v_ff = self.get_input_port(1).Eval(context)
+        desired_state = np.concatenate([q_cmd, v_ff])
         output.SetFromVector(desired_state)
 
 
@@ -194,11 +198,11 @@ def _MakeUR5eSimulationStation(meshcat, control_mode: str, time_step: float):
 
     plant.Finalize()
 
-    # Add visualizer if meshcat provided
+    # Add visualizer if meshcat provided (with all visualization types)
     if meshcat is not None:
         meshcat.Delete()
-        MeshcatVisualizer.AddToBuilder(
-            builder, scene_graph.get_query_output_port(), meshcat
+        ApplyVisualizationConfig(
+            VisualizationConfig(), builder, meshcat=meshcat
         )
 
     n = 6  # UR5e has 6 joints
@@ -239,8 +243,8 @@ def _MakeUR5eSimulationStation(meshcat, control_mode: str, time_step: float):
         adapter = builder.AddSystem(VelocityToDesiredStateAdapter(n))
         adapter.set_name("velocity_adapter")
     else:
-        adapter = builder.AddSystem(PositionToDesiredStateAdapter(n))
-        adapter.set_name("position_adapter")
+        adapter = builder.AddSystem(PositionVelocityToDesiredStateAdapter(n))
+        adapter.set_name("position_velocity_adapter")
 
     # Connect adapter to controller desired_state
     builder.Connect(
@@ -257,7 +261,9 @@ def _MakeUR5eSimulationStation(meshcat, control_mode: str, time_step: float):
     if control_mode == "velocity":
         builder.ExportInput(adapter.get_input_port(), "ur5e.velocity")
     else:
-        builder.ExportInput(adapter.get_input_port(), "ur5e.position")
+        # Position mode: export both position and velocity feedforward ports
+        builder.ExportInput(adapter.get_input_port(0), "ur5e.position")
+        builder.ExportInput(adapter.get_input_port(1), "ur5e.velocity_ff")
 
     builder.ExportOutput(demux.get_output_port(0), "ur5e.position_measured")
     builder.ExportOutput(demux.get_output_port(1), "ur5e.velocity_measured")
@@ -406,11 +412,11 @@ def _MakeUR5eSimulationStationWithScene(
 
     plant.Finalize()
 
-    # Add visualizer if meshcat provided
+    # Add visualizer if meshcat provided (with all visualization types)
     if meshcat is not None:
         meshcat.Delete()
-        MeshcatVisualizer.AddToBuilder(
-            builder, scene_graph.get_query_output_port(), meshcat
+        ApplyVisualizationConfig(
+            VisualizationConfig(), builder, meshcat=meshcat
         )
 
     n = 6  # UR5e has 6 joints
@@ -447,8 +453,8 @@ def _MakeUR5eSimulationStationWithScene(
         adapter = builder.AddSystem(VelocityToDesiredStateAdapter(n))
         adapter.set_name("velocity_adapter")
     else:
-        adapter = builder.AddSystem(PositionToDesiredStateAdapter(n))
-        adapter.set_name("position_adapter")
+        adapter = builder.AddSystem(PositionVelocityToDesiredStateAdapter(n))
+        adapter.set_name("position_velocity_adapter")
 
     # Connect adapter to controller desired_state
     builder.Connect(
@@ -465,7 +471,9 @@ def _MakeUR5eSimulationStationWithScene(
     if control_mode == "velocity":
         builder.ExportInput(adapter.get_input_port(), "ur5e.velocity")
     else:
-        builder.ExportInput(adapter.get_input_port(), "ur5e.position")
+        # Position mode: export both position and velocity feedforward ports
+        builder.ExportInput(adapter.get_input_port(0), "ur5e.position")
+        builder.ExportInput(adapter.get_input_port(1), "ur5e.velocity_ff")
 
     builder.ExportOutput(demux.get_output_port(0), "ur5e.position_measured")
     builder.ExportOutput(demux.get_output_port(1), "ur5e.velocity_measured")
