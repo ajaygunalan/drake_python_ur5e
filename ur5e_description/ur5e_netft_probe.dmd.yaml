@@ -3,6 +3,15 @@ directives:
 - add_model:
     name: ur5e
     file: package://ur5e_description/ur5e.urdf
+    # Home position: upright pose with elbow bent (avoids singularity & table collision)
+    # [base, shoulder, elbow, wrist1, wrist2, wrist3] in radians
+    default_joint_positions:
+        shoulder_pan_joint: [0.0]
+        shoulder_lift_joint: [-1.5708]    # -90 deg
+        elbow_joint: [1.5708]              # +90 deg
+        wrist_1_joint: [-1.5708]           # -90 deg
+        wrist_2_joint: [-1.5708]           # -90 deg
+        wrist_3_joint: [0.0]
 
 # NetFT + Probe End-Effector
 - add_model:
