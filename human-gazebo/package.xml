@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>human-gazebo</name>
+  <version>1.0.0</version>
+  <description>Human models for robotics simulation</description>
+  <maintainer email="none@none.com">none</maintainer>
+  <license>CC-BY-SA</license>
+</package>
