@@ -102,5 +102,5 @@ station = MakeHardwareStation(scenario, meshcat=meshcat, package_xmls=[UR5E_PACK
 ```python
 from ur5e_description.ur5e_driver import UR5eDriver
 driver = builder.AddSystem(UR5eDriver(robot_ip="192.168.1.102"))
-# Ports: desired_state (input, 12), state_estimated (output, 12)
+# Ports match simulation: ur5e.desired_state, ur5e.state_estimated
 ```
