@@ -3,6 +3,26 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 
+## Commit Messages
+
+High-level, 2-3 lines max:
+```
+<What you did in one line>
+
+<Why/how in 1-2 short sentences>
+```
+
+Example:
+```
+Refactor UR5e to match IIWA textbook pattern
+
+Use LoadScenario + MakeHardwareStation like IIWA examples.
+Simplify driver from 100 to 45 lines.
+```
+
+No bullet lists. No file-by-file details. Just the essence.
+
+
 ## Context Awareness
 Your context window will be automatically compacted as it approaches its limit, allowing you to continue working indefinitely from where you left off. Therefore, do not stop tasks early due to token budget concerns. As you approach your token budget limit, save your current progress and state to memory before the context window refreshes. Always be as persistent and autonomous as possible and complete tasks fully, even if the end of your budget is approaching. Never artificially stop any task early regardless of the context remaining.
 
@@ -61,18 +81,26 @@ Domain-specific repos indexed for fast doc access:
 When discovering a domain-specific library via Exa, ask user: "Found [library]. Add to Ref as private repo for faster access?"
 
 
-## UR5e Station
+## UR5e Code Patterns
 
-`ur5e_description/ur5e_station.py` - Hardware abstraction for sim + real UR5e:
-
+**Simulation** - Use manipulation library's `MakeHardwareStation` with `!InverseDynamicsDriver`:
 ```python
-from ur5e_description.ur5e_station import MakeUR5eHardwareStation, GetPlantFromStation
+from manipulation.station import LoadScenario, MakeHardwareStation
+from ur5e_description.ur5e_driver import UR5E_PACKAGE_XML
 
-station = MakeUR5eHardwareStation(meshcat=meshcat, control_mode="velocity")
-plant = GetPlantFromStation(station)  # For Jacobian calculations
+scenario = LoadScenario(data="""
+directives:
+- add_directives:
+    file: package://ur5e_description/ur5e_netft_probe.dmd.yaml
+model_drivers:
+    ur5e: !InverseDynamicsDriver {}
+""")
+station = MakeHardwareStation(scenario, meshcat=meshcat, package_xmls=[UR5E_PACKAGE_XML])
 ```
 
-- **Ports**: `ur5e.velocity` (input), `ur5e.position_measured`, `ur5e.velocity_measured` (outputs)
-- **Sim**: Uses `JointStiffnessController` (Kp=0, Kd=100) for velocity tracking with gravity comp
-- **Hardware**: Uses `ur_rtde.speedJ()` - requires `pip install ur-rtde`
-- **Home pose**: `[0, -90°, +90°, -90°, -90°, 0°]` defined in `ur5e_netft_probe.dmd.yaml`
+**Hardware** - Use `UR5eDriver` directly:
+```python
+from ur5e_description.ur5e_driver import UR5eDriver
+driver = builder.AddSystem(UR5eDriver(robot_ip="192.168.1.102"))
+# Ports: desired_state (input, 12), state_estimated (output, 12)
+```
