@@ -11,13 +11,14 @@
 ```bash
 git clone https://github.com/ajaygunalan/drake.git
 cd drake
-python3 -m venv venv && source venv/bin/activate
+python3 -m venv drake-env && source drake-env/bin/activate
 pip install drake manipulation jupyter --extra-index-url https://drake-packages.csail.mit.edu/whl/nightly/
 ```
 
 ## Run Simulation
 
 ```bash
+source drake-env/bin/activate
 jupyter notebook chap_3_basic_pick_n_place/example_3_11_pick_ur5e.ipynb
 ```
 
